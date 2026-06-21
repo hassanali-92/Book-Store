@@ -13,13 +13,29 @@ connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const allowedOrigins = [
+  'https://book-store-frontend-phi-ten.vercel.app',
+  'http://localhost:5173' // Development ke liye
+];
 
-// ✅ Production-Ready CORS Configuration
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'https://book-store-frontend-phi-ten.vercel.app/', // Frontend URL
-    credentials: true,           // Cookies/Auth headers allow karo
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Sirf zaroori methods
-    allowedHeaders: ['Content-Type', 'Authorization'] // Sirf zaroori headers
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin matches any in our list (with or without trailing slash)
+    const cleanOrigin = origin.replace(/\/$/, ''); 
+    const isAllowed = allowedOrigins.some(allowed => allowed.replace(/\/$/, '') === cleanOrigin);
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
